@@ -106,7 +106,7 @@ Any consequential error won’t add punishment-lines. Used by
       (let ((token (pop typer-line-queue)))
 	(goto-char (point-max))
 	(when (not (string= token "\n"))
-	  (goto-char (point-at-bol)))
+	  (goto-char (line-beginning-position)))
 	(typer-do (insert token))
 	(goto-char typer-point))
     (cancel-timer typer-animation-timer)
