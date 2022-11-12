@@ -60,6 +60,8 @@ retype. When nil ‘view-emacs-news’ is used."
   "Disable `read-only-mode', evaluate BODY, then enable it again."
   `(progn (read-only-mode 0) ,@body (read-only-mode 1)))
 
+;;;###autoload
+(defvar typer-mode-map (make-sparse-keymap))
 (defvar-local typer-point (point-min))
 (defvar-local typer-state :typer-playing)
 (defvar-local typer-line-queue '())
@@ -70,7 +72,7 @@ retype. When nil ‘view-emacs-news’ is used."
   (buffer-disable-undo)
   (add-hook 'post-command-hook 'typer-post-command-hook nil :local)
   (add-hook 'kill-buffer-hook 'typer-kill-buffer-hook nil :local)
-
+  (define-key typer-mode-map [remap self-insert-command] 'typer-insert-command)
   (typer-do
    (erase-buffer)
    (insert (typer-random-sentences 10)))
@@ -158,11 +160,6 @@ Any consequential error won’t add punishment-lines. Used by
   (when (equal (symbol-value typer-state) :typer-playing)
     (typer-handle-char (this-command-keys-vector))
     (typer-check-state)))
-
-(defvar typer-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [remap self-insert-command] 'typer-insert-command)
-    map))
 
 (defun typer-post-command-hook ()
   "Reposition cursor to new point-min."
