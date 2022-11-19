@@ -7,6 +7,7 @@
 ;; Keywords: games
 ;; URL: https://github.com/lordnik22
 ;; Package-Requires: ((emacs "25"))
+;; SPDX-License-Identifier: GPL-3.0-or-later
 
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -20,6 +21,8 @@
 ;; until the user types all characters correct which results in "Game Won".
 ;; If the user makes to many succesive errors then it’s "Game Over".
 ;;; Code:
+(require 'subr-x)
+
 (defgroup typer nil
   "Practise your keyboard typing speed."
   :prefix "typer-"
@@ -70,9 +73,9 @@ retype. When nil ‘view-emacs-news’ is used."
   "A game for tytpractising typing speed."
   (read-only-mode)
   (buffer-disable-undo)
-  (add-hook 'post-command-hook 'typer-post-command-hook nil :local)
-  (add-hook 'kill-buffer-hook 'typer-kill-buffer-hook nil :local)
-  (define-key typer-mode-map [remap self-insert-command] 'typer-insert-command)
+  (add-hook 'post-command-hook #'typer-post-command-hook nil :local)
+  (add-hook 'kill-buffer-hook #'typer-kill-buffer-hook nil :local)
+  (define-key typer-mode-map [remap self-insert-command] #'typer-insert-command)
   (typer-do
    (erase-buffer)
    (insert (typer-random-sentences 10)))
@@ -106,7 +109,7 @@ Any consequential error won’t add punishment-lines. Used by
   "Animation which comes with punishment-lines."
   (if typer-line-queue
       (let ((token (pop typer-line-queue)))
-	(goto-char (point-max))
+	(beginning-of-line)
 	(when (not (string= token "\n"))
 	  (goto-char (line-beginning-position)))
 	(typer-do (insert token))
@@ -120,7 +123,7 @@ Any consequential error won’t add punishment-lines. Used by
     (switch-to-buffer typer-buffer-name)
     (setq typer-line-queue (append typer-line-queue '("\n") (reverse (split-string line "" t)))))
   (when (not (timerp typer-animation-timer))
-    (setq typer-animation-timer (run-at-time nil 0.01 'typer-animate-line-insertion))))
+    (setq typer-animation-timer (run-at-time nil 0.01 #'typer-animate-line-insertion))))
 
 (defun typer-game-won ()
   "The player won the game and put’s the buffer into won-state."
@@ -191,7 +194,7 @@ Any consequential error won’t add punishment-lines. Used by
   (if (> n 0)
       (let* ((word-count (typer-random-between typer-min-words-per-line typer-max-words-per-line))
 	     (words (typer-random-words-from-current-buffer word-count))
-	     (sentence (mapconcat 'identity words " ")))
+	     (sentence (mapconcat #'identity words " ")))
 	(cons sentence (typer-random-sentences-from-current-buffer (1- n))))
     nil))
 
@@ -204,7 +207,7 @@ Any consequential error won’t add punishment-lines. Used by
 	       (insert-file-contents typer-mode-content)
 	     (user-error "‘typer-mode-content’ not readable!")))
 	  (t (view-emacs-news)))
-    (mapconcat 'identity (typer-random-sentences-from-current-buffer n) "\n")))
+    (mapconcat #'identity (typer-random-sentences-from-current-buffer n) "\n")))
 
 ;;;###autoload
 (defun typer ()
